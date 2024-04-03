@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import time
+import random
 
 
 import paho.mqtt.client as paho
@@ -82,32 +83,83 @@ def on_message(client, userdata, msg):
 # using MQTT version 5 here, for 3.1.1: MQTTv311, 3.1: MQTTv31
 # userdata is user defined data of any type, updated by user_data_set()
 # client_id is the given name of the client
-client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="", userdata=None, protocol=paho.MQTTv5)
-client.on_connect = on_connect
 
+senders = []
 
+#==============Sender 1=======================
+sender1 = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Sender1", userdata=None, protocol=paho.MQTTv5)
+sender1.on_connect = on_connect
 # enable TLS for secure connection
-client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+sender1.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 # set username and password
-client.username_pw_set("{YOUR USERNAME}", "{YOUR PASSWORD}")
+sender1.username_pw_set("Sender#1", "Sender#1")
 # connect to HiveMQ Cloud on port 8883 (default for MQTT)
-client.connect("{YOUR URL}", 8883)
-
-
+sender1.connect("d443b59d500744229090998ea94a2c5e.s1.eu.hivemq.cloud", 8883)
 # setting callbacks, use separate functions like above for better visibility
-client.on_subscribe = on_subscribe
-client.on_message = on_message
-client.on_publish = on_publish
-
-
+sender1.on_subscribe = on_subscribe
+sender1.on_message = on_message
+sender1.on_publish = on_publish
 # subscribe to all topics of encyclopedia by using the wildcard "#"
-client.subscribe("encyclopedia/#", qos=1)
+#sender1.subscribe("encyclopedia/#", qos=1)
+
+senders.append(sender1)
+
+#==============Sender 2=======================
+sender2 = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Sender2", userdata=None, protocol=paho.MQTTv5)
+sender2.on_connect = on_connect
+# enable TLS for secure connection
+sender2.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+# set username and password
+sender2.username_pw_set("Sender#2", "Sender#2")
+# connect to HiveMQ Cloud on port 8883 (default for MQTT)
+sender2.connect("d443b59d500744229090998ea94a2c5e.s1.eu.hivemq.cloud", 8883)
+# setting callbacks, use separate functions like above for better visibility
+sender2.on_subscribe = on_subscribe
+sender2.on_message = on_message
+sender2.on_publish = on_publish
+# subscribe to all topics of encyclopedia by using the wildcard "#"
+#sender2.subscribe("encyclopedia/#", qos=1)
+
+senders.append(sender2)
+
+#==============listener 1=======================
+listener = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Listener", userdata=None, protocol=paho.MQTTv5)
+listener.on_connect = on_connect
+# enable TLS for secure connection
+listener.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+# set username and password
+listener.username_pw_set("listener#1", "listener#1")
+# connect to HiveMQ Cloud on port 8883 (default for MQTT)
+listener.connect("d443b59d500744229090998ea94a2c5e.s1.eu.hivemq.cloud", 8883)
+# setting callbacks, use separate functions like above for better visibility
+listener.on_subscribe = on_subscribe
+listener.on_message = on_message
+listener.on_publish = on_publish
+# subscribe to all topics of encyclopedia by using the wildcard "#"
+listener.subscribe("encyclopedia/#", qos=1)
+
+
+# Function to publish random numbers
+def publish_random_numbers(client):
+    while True:
+        random_number = random.randint(0, 100)
+        client.publish("encyclopedia/random_number", random_number)
+        time.sleep(3)
+
+# Start publishing random numbers from senders
+for sender in senders:
+    sender.loop_start()
+    publish_random_numbers(sender)
+
+# Start listener
+listener.loop_forever()
+
 
 
 # a single publish, this can also be done in loops, etc.
-client.publish("encyclopedia/temperature", payload="hot", qos=1)
+#client.publish("encyclopedia/temperature", payload="hot", qos=1)
 
 
 # loop_forever for simplicity, here you need to stop the loop manually
 # you can also use loop_start and loop_stop
-client.loop_forever()
+#client.loop_forever()
