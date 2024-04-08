@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from InputTypes import NewPlayer
 from game import Game
 from moveset import Moveset
+import time
 
 # setting callbacks for different events to see if it works, print the message etc.
 def on_connect(client, userdata, flags, rc, properties=None):
@@ -213,5 +214,34 @@ if __name__ == '__main__':
     client.subscribe("new_game")
     client.subscribe('games/+/start')
     client.subscribe('games/+/+/move')
+
+
+    # Challenge 2 
+
+    # 2a:
+    lobby_name = "NewLobby"
+    team_name = "NewTeam"
+    player_name = "NewPlayer"
+
+    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+                                            'team_name':team_name,
+                                            'player_name' : player_name}))
+
+    # 2b:
+    client.subscribe(f"games/{lobby_name}/lobby")
+
+    # 2d:
+    client.subscribe(f'games/{lobby_name}/{player_name}/game_state')
+
+    # 2c and 2f:
+    time.sleep(1) # Wait a second to resolve game start
+    client.publish(f"games/{lobby_name}/start", "START")
+    client.publish(f"games/{lobby_name}/{player_name}/move", "DOWN")
+    client.publish(f"games/{lobby_name}/{player_name}/move", "RIGHT")
+    client.publish(f"games/{lobby_name}/{player_name}/move", "DOWN")
+    client.publish(f"games/{lobby_name}/start", "STOP")
+
+    # 2e
+    # publish scores of teams
 
     client.loop_forever()

@@ -82,32 +82,35 @@ def on_message(client, userdata, msg):
 # using MQTT version 5 here, for 3.1.1: MQTTv311, 3.1: MQTTv31
 # userdata is user defined data of any type, updated by user_data_set()
 # client_id is the given name of the client
-client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="", userdata=None, protocol=paho.MQTTv5)
-client.on_connect = on_connect
-
-
-# enable TLS for secure connection
-client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-# set username and password
-client.username_pw_set("{YOUR USERNAME}", "{YOUR PASSWORD}")
-# connect to HiveMQ Cloud on port 8883 (default for MQTT)
-client.connect("{YOUR URL}", 8883)
-
+client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Roreyes123", userdata=None, protocol=paho.MQTTv5)
 
 # setting callbacks, use separate functions like above for better visibility
+client.on_connect = on_connect
 client.on_subscribe = on_subscribe
 client.on_message = on_message
 client.on_publish = on_publish
 
 
+# enable TLS for secure connection
+client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+# set username and password
+client.username_pw_set("Roreyes123", "Roreyes123")
+# connect to HiveMQ Cloud on port 8883 (default for MQTT)
+print("Connecting to Broker...")
+client.connect("e0f880dab62c4776a128117d1809923f.s1.eu.hivemq.cloud", 8883)
+
+
 # subscribe to all topics of encyclopedia by using the wildcard "#"
 client.subscribe("encyclopedia/#", qos=1)
 
-
 # a single publish, this can also be done in loops, etc.
-client.publish("encyclopedia/temperature", payload="hot", qos=1)
-
+client.publish("encyclopedia/temperature", payload="hot22", qos=1)
 
 # loop_forever for simplicity, here you need to stop the loop manually
 # you can also use loop_start and loop_stop
-client.loop_forever()
+#client.loop_forever()
+
+client.loop_start()
+time.sleep(4)
+client.loop_stop()
+
