@@ -118,7 +118,7 @@ class Game:
             gameData['walls'].append(loc)
     
     def gameOver(self):
-        return self.map.numCoins <= 0
+        return self.map.numCoins <= 0 
 
     def getScores(self):
         scores = {}

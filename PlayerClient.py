@@ -1,5 +1,6 @@
 import os
 import json
+import string
 from dotenv import load_dotenv
 
 import paho.mqtt.client as paho
@@ -77,7 +78,7 @@ if __name__ == '__main__':
     # setting callbacks, use separate functions like above for better visibility
     client.on_subscribe = on_subscribe # Can comment out to not print when subscribing to new topics
     client.on_message = on_message
-    client.on_publish = on_publish # Can comment out to not print when publishing to topics
+    #client.on_publish = on_publish # Can comment out to not print when publishing to topics
 
     lobby_name = "TestLobby"
     player_1 = "Player1"
@@ -92,20 +93,39 @@ if __name__ == '__main__':
                                             'team_name':'ATeam',
                                             'player_name' : player_1}))
     
-    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                            'team_name':'BTeam',
-                                            'player_name' : player_2}))
+    # client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+    #                                         'team_name':'BTeam',
+    #                                         'player_name' : player_2}))
     
-    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                        'team_name':'BTeam',
-                                        'player_name' : player_3}))
+    # client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+    #                                     'team_name':'BTeam',
+    #                                     'player_name' : player_3}))
 
     time.sleep(1) # Wait a second to resolve game start
     client.publish(f"games/{lobby_name}/start", "START")
-    client.publish(f"games/{lobby_name}/{player_1}/move", "UP")
-    client.publish(f"games/{lobby_name}/{player_2}/move", "DOWN")
-    client.publish(f"games/{lobby_name}/{player_3}/move", "DOWN")
+    # client.publish(f"games/{lobby_name}/{player_1}/move", "UP")
+    # client.publish(f"games/{lobby_name}/{player_2}/move", "DOWN")
+    # client.publish(f"games/{lobby_name}/{player_3}/move", "DOWN")
+
+    while True:
+        try:
+            client.loop_start()
+            time.sleep(1)
+            user_input = input("Enter a direction to move:")
+            match user_input.lower():
+                case "up":
+                    client.publish(f"games/{lobby_name}/{player_1}/move", "UP")
+                case "down":
+                    client.publish(f"games/{lobby_name}/{player_1}/move", "DOWN")
+                case "left":
+                    client.publish(f"games/{lobby_name}/{player_1}/move", "LEFT")
+                case "right":
+                    client.publish(f"games/{lobby_name}/{player_1}/move", "RIGHT")
+            client.loop_stop()
+        except KeyboardInterrupt:
+            break
+
     client.publish(f"games/{lobby_name}/start", "STOP")
 
 
-    client.loop_forever()
+    #client.loop_forever()

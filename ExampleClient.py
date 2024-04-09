@@ -94,10 +94,10 @@ sender1.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 # set username and password
 sender1.username_pw_set("Sender#1", "Sender#1")
 # connect to HiveMQ Cloud on port 8883 (default for MQTT)
-sender1.connect("d443b59d500744229090998ea94a2c5e.s1.eu.hivemq.cloud", 8883)
+sender1.connect("15fb1e0437944a4192d8cb23b89255f0.s1.eu.hivemq.cloud", 8883)
 # setting callbacks, use separate functions like above for better visibility
-sender1.on_subscribe = on_subscribe
-sender1.on_message = on_message
+#sender1.on_subscribe = on_subscribe
+#sender1.on_message = on_message
 sender1.on_publish = on_publish
 # subscribe to all topics of encyclopedia by using the wildcard "#"
 #sender1.subscribe("encyclopedia/#", qos=1)
@@ -112,7 +112,7 @@ sender2.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 # set username and password
 sender2.username_pw_set("Sender#2", "Sender#2")
 # connect to HiveMQ Cloud on port 8883 (default for MQTT)
-sender2.connect("d443b59d500744229090998ea94a2c5e.s1.eu.hivemq.cloud", 8883)
+sender2.connect("15fb1e0437944a4192d8cb23b89255f0.s1.eu.hivemq.cloud", 8883)
 # setting callbacks, use separate functions like above for better visibility
 sender2.on_subscribe = on_subscribe
 sender2.on_message = on_message
@@ -123,36 +123,41 @@ sender2.on_publish = on_publish
 senders.append(sender2)
 
 #==============listener 1=======================
-listener = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Listener", userdata=None, protocol=paho.MQTTv5)
+listener = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Listener1", userdata=None, protocol=paho.MQTTv5)
 listener.on_connect = on_connect
 # enable TLS for secure connection
 listener.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 # set username and password
-listener.username_pw_set("listener#1", "listener#1")
+listener.username_pw_set("Listener#1", "Listener#1")
 # connect to HiveMQ Cloud on port 8883 (default for MQTT)
-listener.connect("d443b59d500744229090998ea94a2c5e.s1.eu.hivemq.cloud", 8883)
+listener.connect("15fb1e0437944a4192d8cb23b89255f0.s1.eu.hivemq.cloud", 8883)
 # setting callbacks, use separate functions like above for better visibility
 listener.on_subscribe = on_subscribe
 listener.on_message = on_message
-listener.on_publish = on_publish
+#listener.on_publish = on_publish
 # subscribe to all topics of encyclopedia by using the wildcard "#"
 listener.subscribe("encyclopedia/#", qos=1)
 
+time.sleep(1)
+
 
 # Function to publish random numbers
-def publish_random_numbers(client):
-    while True:
+def publish_random_numbers():
+    for sender in senders:
         random_number = random.randint(0, 100)
-        client.publish("encyclopedia/random_number", random_number)
-        time.sleep(3)
+        sender.publish("encyclopedia/random_number", str(sender._client_id) +str(random_number))
+        time.sleep(.1)
 
 # Start publishing random numbers from senders
-for sender in senders:
-    sender.loop_start()
-    publish_random_numbers(sender)
-
+listener.loop_start()
+while True:
+    try:
+        publish_random_numbers()
+        time.sleep(3)
+    except KeyboardInterrupt:
+        break
 # Start listener
-listener.loop_forever()
+listener.loop_stop()
 
 
 
