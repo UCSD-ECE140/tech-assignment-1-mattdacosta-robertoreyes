@@ -192,6 +192,7 @@ if __name__ == '__main__':
     username = os.environ.get('USER_NAME')
     password = os.environ.get('PASSWORD')
 
+
     client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="GameClient", userdata=None, protocol=paho.MQTTv5)
     
     # enable TLS for secure connection
@@ -204,7 +205,7 @@ if __name__ == '__main__':
     # setting callbacks, use separate functions like above for better visibility
     client.on_subscribe = on_subscribe # Can comment out to not print when subscribing to new topics
     client.on_message = on_message
-    client.on_publish = on_publish # Can comment out to not print when publishing to topics
+    #client.on_publish = on_publish # Can comment out to not print when publishing to topics
     
     # custom dictionary to track players
     client.team_dict = {} # Keeps tracks of players before a game starts {'lobby_name' : {'team_name' : [player_name, ...]}}
@@ -215,33 +216,101 @@ if __name__ == '__main__':
     client.subscribe('games/+/start')
     client.subscribe('games/+/+/move')
 
-
-    # Challenge 2 
-
-    # 2a:
-    lobby_name = "NewLobby"
-    team_name = "NewTeam"
-    player_name = "NewPlayer"
+    lobby_name = "Ch2_Lobby"
+    team_name = "TeamA"
+    player_name = "PlayerA1"
+    player_A2 = "PlayerA2"
+    player_B1 = "PlayerB1"
+    player_B2 = "PlayerB2"
 
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
                                             'team_name':team_name,
                                             'player_name' : player_name}))
 
-    # 2b:
+    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+                                            'team_name':team_name,
+                                            'player_name' : player_A2}))
+    
+    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+                                            'team_name':'BTeam',
+                                            'player_name' : player_B1}))
+    
+    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+                                        'team_name':'BTeam',
+                                        'player_name' : player_B2}))
+
+
     client.subscribe(f"games/{lobby_name}/lobby")
-
-    # 2d:
     client.subscribe(f'games/{lobby_name}/{player_name}/game_state')
+    client.subscribe(f'games/{lobby_name}/{player_A2}/game_state')
+    client.subscribe(f'games/{lobby_name}/{player_B1}/game_state')
+    client.subscribe(f'games/{lobby_name}/{player_B2}/game_state')
+    client.subscribe(f'games/{lobby_name}/scores')
 
-    # 2c and 2f:
     time.sleep(1) # Wait a second to resolve game start
     client.publish(f"games/{lobby_name}/start", "START")
-    client.publish(f"games/{lobby_name}/{player_name}/move", "DOWN")
-    client.publish(f"games/{lobby_name}/{player_name}/move", "RIGHT")
-    client.publish(f"games/{lobby_name}/{player_name}/move", "DOWN")
-    client.publish(f"games/{lobby_name}/start", "STOP")
 
-    # 2e
-    # publish scores of teams
+
+    while True:
+        try:
+            client.loop_start()
+            time.sleep(1)
+            user_input = input("[Player A1] Enter a direction to move:")
+            match user_input.lower():
+                case "up":
+                    client.publish(f"games/{lobby_name}/{player_name}/move", "UP")
+                case "down":
+                    client.publish(f"games/{lobby_name}/{player_name}/move", "DOWN")
+                case "left":
+                    client.publish(f"games/{lobby_name}/{player_name}/move", "LEFT")
+                case "right":
+                    client.publish(f"games/{lobby_name}/{player_name}/move", "RIGHT")
+
+            time.sleep(0.3)
+
+            user_input = input("[Player B1] Enter a direction to move:")
+            match user_input.lower():
+                case "up":
+                    client.publish(f"games/{lobby_name}/{player_B1}/move", "UP")
+                case "down":
+                    client.publish(f"games/{lobby_name}/{player_B1}/move", "DOWN")
+                case "left":
+                    client.publish(f"games/{lobby_name}/{player_B1}/move", "LEFT")
+                case "right":
+                    client.publish(f"games/{lobby_name}/{player_B1}/move", "RIGHT")
+
+            time.sleep(0.3)
+
+            user_input = input("[Player A2] Enter a direction to move:")
+            match user_input.lower():
+                case "up":
+                    client.publish(f"games/{lobby_name}/{player_A2}/move", "UP")
+                case "down":
+                    client.publish(f"games/{lobby_name}/{player_A2}/move", "DOWN")
+                case "left":
+                    client.publish(f"games/{lobby_name}/{player_A2}/move", "LEFT")
+                case "right":
+                    client.publish(f"games/{lobby_name}/{player_A2}/move", "RIGHT")
+
+            time.sleep(0.3)
+
+            user_input = input("[Player B2] Enter a direction to move:")
+            match user_input.lower():
+                case "up":
+                    client.publish(f"games/{lobby_name}/{player_B2}/move", "UP")
+                case "down":
+                    client.publish(f"games/{lobby_name}/{player_B2}/move", "DOWN")
+                case "left":
+                    client.publish(f"games/{lobby_name}/{player_B2}/move", "LEFT")
+                case "right":
+                    client.publish(f"games/{lobby_name}/{player_B2}/move", "RIGHT")
+            time.sleep(0.3)
+
+        except KeyboardInterrupt:
+            break
+
+    client.publish(f"games/{lobby_name}/start", "STOP")
+    time.sleep(2)
+    client.loop_stop()
 
     client.loop_forever()
